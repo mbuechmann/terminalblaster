@@ -24,6 +24,12 @@ func OpenLibraryScreen() {
 	termui.Handle("/sys/kbd/<up>", func(e termui.Event) {
 		artistList.Prev()
 	})
+	termui.Handle("/sys/kbd/<next>", func(e termui.Event) {
+		artistList.NextPage()
+	})
+	termui.Handle("/sys/kbd/<previous>", func(e termui.Event) {
+		artistList.PrevPage()
+	})
 	termui.Handle("/sys/kbd/<right>", func(e termui.Event) {
 		fmt.Println(artistList.CurrentItem())
 	})

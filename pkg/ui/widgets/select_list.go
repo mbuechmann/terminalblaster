@@ -10,6 +10,7 @@ import (
 type SelectList struct {
 	Source    []string
 	index     int
+	offset    int
 	list      *termui.List
 	itemCount int
 }
@@ -45,9 +46,9 @@ func (sl *SelectList) fillList() {
 	strs := make([]string, sl.itemCount)
 	for i := 0; i < sl.itemCount; i++ {
 		if i == sl.index {
-			strs[i] = fmt.Sprintf("[%-39s](fg-white,bg-black)", sl.Source[i])
+			strs[i] = fmt.Sprintf("[%-39s](fg-white,bg-black)", sl.Source[i+sl.offset])
 		} else {
-			strs[i] = sl.Source[i]
+			strs[i] = sl.Source[i+sl.offset]
 		}
 	}
 	sl.list.Items = strs
@@ -56,8 +57,12 @@ func (sl *SelectList) fillList() {
 
 // Next increments the index of the active item.
 func (sl *SelectList) Next() {
-	if sl.index < sl.itemCount-1 {
-		sl.index++
+	if sl.offset+sl.index < len(sl.Source)-1 {
+		if sl.index < sl.itemCount-1 {
+			sl.index++
+		} else {
+			sl.offset++
+		}
 		sl.fillList()
 		sl.Render()
 	}
@@ -65,11 +70,37 @@ func (sl *SelectList) Next() {
 
 // Prev decrements the index of the active item.
 func (sl *SelectList) Prev() {
-	if sl.index > 0 {
-		sl.index--
+	if sl.index+sl.offset > 0 {
+		if sl.index > 0 {
+			sl.index--
+		} else {
+			sl.offset--
+		}
 		sl.fillList()
 		sl.Render()
 	}
+}
+
+// NextPage decrements the index of the active item by one page.
+func (sl *SelectList) NextPage() {
+	sl.offset += sl.itemCount
+	if sl.offset > len(sl.Source)-sl.itemCount {
+		sl.offset = len(sl.Source) - sl.itemCount
+		sl.index = sl.itemCount - 1
+	}
+	sl.fillList()
+	sl.Render()
+}
+
+// PrevPage decrements the index of the active item by one page.
+func (sl *SelectList) PrevPage() {
+	sl.offset -= sl.itemCount
+	if sl.offset < 0 {
+		sl.offset = 0
+		sl.index = 0
+	}
+	sl.fillList()
+	sl.Render()
 }
 
 // Render renders the SelectList on the screen.
@@ -79,5 +110,5 @@ func (sl SelectList) Render() {
 
 // CurrentItem returns the item for the current index.
 func (sl SelectList) CurrentItem() string {
-	return sl.Source[sl.index]
+	return sl.Source[sl.index+sl.offset]
 }
