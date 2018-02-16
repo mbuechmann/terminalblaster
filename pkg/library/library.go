@@ -8,13 +8,14 @@ import (
 	"github.com/dhowden/tag"
 )
 
-// ArtistNames is a alphabetically sortef list of names of all artists.
-var ArtistNames = []string{}
+// Artists is a list of all read Artists sorted alphabetically by artist names.
+var Artists = []Artist{}
+
+var artistMap = map[string]Artist{}
+var artistNames = []string{}
 
 var unreadableDirs = []string{}
 var unreadableFiles = []string{}
-
-var artists = map[string]Artist{}
 
 var trackChan = make(chan *Track)
 
@@ -51,7 +52,12 @@ func Load(path string) (chan *Track, error) {
 	go func() {
 		filepath.Walk(path, walk)
 
-		sort.Strings(ArtistNames)
+		sort.Strings(artistNames)
+
+		Artists = make([]Artist, len(artistNames))
+		for i, name := range artistNames {
+			Artists[i] = artistMap[name]
+		}
 
 		close(trackChan)
 	}()
@@ -106,11 +112,11 @@ func walk(path string, info os.FileInfo, err error) error {
 }
 
 func getArtist(name string) Artist {
-	artist, ok := artists[name]
+	artist, ok := artistMap[name]
 	if !ok {
 		artist = Artist{Name: name, Albums: map[string]Album{}}
-		artists[name] = artist
-		ArtistNames = append(ArtistNames, name)
+		artistMap[name] = artist
+		artistNames = append(artistNames, name)
 	}
 
 	return artist

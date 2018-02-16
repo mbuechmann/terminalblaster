@@ -41,7 +41,12 @@ func OpenLibraryScreen() {
 	width := 40
 	height := termui.TermHeight() - 2
 
-	artistList = widgets.NewSelectList(lib.ArtistNames, 0, 0, width, height)
+	items := make([]widgets.SelectItem, len(lib.Artists))
+	for i, a := range lib.Artists {
+		items[i] = widgets.SelectItem{Name: a.Name, Value: a}
+	}
+
+	artistList = widgets.NewSelectList(items, 0, 0, width, height)
 	artistList.Render()
 
 	termui.Loop()
