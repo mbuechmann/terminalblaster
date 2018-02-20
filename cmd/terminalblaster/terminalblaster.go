@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	lib "github.com/mbuechmann/terminalblaster/pkg/library"
-	"github.com/mbuechmann/terminalblaster/pkg/ui"
+	lib "github.com/mbuechmann/terminalblaster/internal/library"
+	"github.com/mbuechmann/terminalblaster/internal/ui"
 )
 
 // var file = "/Users/maltebuchmann/Music/Queen/Greatest Hits/01 Bohemian Rhapsody (1993 Digital Remaster).mp3"

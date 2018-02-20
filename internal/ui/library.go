@@ -3,8 +3,8 @@ package ui
 import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gizak/termui"
-	lib "github.com/mbuechmann/terminalblaster/pkg/library"
-	"github.com/mbuechmann/terminalblaster/pkg/ui/widgets"
+	lib "github.com/mbuechmann/terminalblaster/internal/library"
+	"github.com/mbuechmann/terminalblaster/internal/ui/widgets"
 )
 
 var artistList widgets.SelectList
