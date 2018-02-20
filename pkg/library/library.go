@@ -9,38 +9,15 @@ import (
 )
 
 // Artists is a list of all read Artists sorted alphabetically by artist names.
-var Artists = []Artist{}
+var Artists = ArtistList{}
 
-var artistMap = map[string]Artist{}
-var artistNames = []string{}
+var artistMap map[string]*Artist
+var albumMap map[string]*AlbumList
 
 var unreadableDirs = []string{}
 var unreadableFiles = []string{}
 
 var trackChan = make(chan *Track)
-
-// Track represents one file of music and its metadata.
-type Track struct {
-	Path        string
-	Title       string
-	Album       string
-	Artist      string
-	AlbumArtist string
-	TrackNumber int
-}
-
-// Album represents a collection of tracks.
-type Album struct {
-	Title      string
-	Tracks     []Track
-	TrackCount int
-}
-
-// Artist represents an artist with name and albums.
-type Artist struct {
-	Name   string
-	Albums map[string]Album
-}
 
 // Load reads the dir for the given file path and scans recursively for audio
 // files. It returns a chan which provides loaded tracks.
@@ -50,16 +27,24 @@ func Load(path string) (chan *Track, error) {
 	}
 
 	go func() {
+		artistMap = map[string]*Artist{}
+		albumMap = map[string]*AlbumList{}
+
 		filepath.Walk(path, walk)
 
-		sort.Strings(artistNames)
-
-		Artists = make([]Artist, len(artistNames))
-		for i, name := range artistNames {
-			Artists[i] = artistMap[name]
+		Artists = make(ArtistList, len(artistMap))
+		i := 0
+		for _, artist := range artistMap {
+			Artists[i] = artist
+			i++
+			sort.Sort(artist.Albums)
 		}
+		sort.Sort(Artists)
 
 		close(trackChan)
+
+		artistMap = nil
+		albumMap = nil
 	}()
 
 	return trackChan, nil
@@ -92,8 +77,8 @@ func walk(path string, info os.FileInfo, err error) error {
 		albumArtist = m.Artist()
 	}
 
-	trackNum, trackTotal := m.Track()
-	track := Track{
+	trackNum, _ := m.Track()
+	track := &Track{
 		Path:        path,
 		Title:       m.Title(),
 		Album:       albumTitle,
@@ -103,30 +88,30 @@ func walk(path string, info os.FileInfo, err error) error {
 	}
 
 	album := getAlbum(albumArtist, albumTitle)
-	album.TrackCount = trackTotal
 	album.Tracks = append(album.Tracks, track)
 
-	trackChan <- &track
+	trackChan <- track
 
 	return nil
 }
 
-func getArtist(name string) Artist {
+func getArtist(name string) *Artist {
 	artist, ok := artistMap[name]
 	if !ok {
-		artist = Artist{Name: name, Albums: map[string]Album{}}
+		artist = &Artist{Name: name, Albums: AlbumList{}}
 		artistMap[name] = artist
-		artistNames = append(artistNames, name)
 	}
 
 	return artist
 }
 
-func getAlbum(artistName, albumTitle string) Album {
+func getAlbum(artistName, albumTitle string) *Album {
 	artist := getArtist(artistName)
-	album, ok := artist.Albums[albumTitle]
-	if !ok {
-		album = Album{Title: albumTitle, Tracks: []Track{}}
+	album := artist.Albums.Get(albumTitle)
+	if album == nil {
+		album = &Album{Title: albumTitle, Tracks: []*Track{}}
+		artist.Albums = append(artist.Albums, album)
 	}
+
 	return album
 }
