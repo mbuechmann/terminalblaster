@@ -11,6 +11,8 @@ type SelectList struct {
 	index          int
 	offset         int
 	list           *termui.List
+	minItemCount   int
+	maxItemCount   int
 	itemCount      int
 }
 
@@ -36,6 +38,8 @@ func NewSelectList(source []*SelectItem, x, y, w, h int) SelectList {
 	if sl.itemCount > h {
 		sl.itemCount = h
 	}
+	sl.minItemCount = sl.itemCount
+	sl.maxItemCount = h
 
 	if len(sl.flattenedItems) > 0 {
 		sl.flattenedItems[0].focussed = true
@@ -140,6 +144,9 @@ func (sl *SelectList) OpenItem() {
 			)...,
 		)
 		sl.itemCount += len(sl.CurrentItem().Children)
+		if sl.itemCount > sl.maxItemCount {
+			sl.itemCount = sl.maxItemCount
+		}
 	}
 	sl.fillList()
 }
@@ -155,6 +162,9 @@ func (sl *SelectList) CloseItem() {
 			sl.flattenedItems[sl.index+sl.offset+1+len(sl.CurrentItem().Children):]...,
 		)
 		sl.itemCount -= len(sl.CurrentItem().Children)
+		if sl.itemCount < sl.minItemCount {
+			sl.itemCount = sl.minItemCount
+		}
 	}
 	sl.fillList()
 }
