@@ -45,6 +45,10 @@ func NewSelectList(source []*SelectItem, x, y, w, h int) SelectList {
 		sl.flattenedItems[0].focussed = true
 	}
 
+	for _, i := range sl.items {
+		i.setWidth(w)
+	}
+
 	sl.fillList()
 
 	return sl

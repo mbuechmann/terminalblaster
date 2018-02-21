@@ -18,6 +18,14 @@ type SelectItem struct {
 	Parent   *SelectItem
 	Children []*SelectItem
 	focussed bool
+	width    int
+}
+
+func (si *SelectItem) setWidth(w int) {
+	si.width = w
+	for _, c := range si.Children {
+		c.setWidth(w)
+	}
 }
 
 // SetChildren sets the children of the selectitems and the parent of all
@@ -33,7 +41,7 @@ func (si *SelectItem) String() string {
 	spaces := strings.Repeat("  ", si.depth())
 	format := "%s%s"
 	if si.focussed {
-		format = fmt.Sprintf("[%%s%%-%ds](fg-white,bg-black)", 39-len(spaces))
+		format = fmt.Sprintf("[%%s%%-%ds](fg-white,bg-black)", si.width-1-len(spaces))
 	}
 	return fmt.Sprintf(format, spaces, si.Name)
 }
