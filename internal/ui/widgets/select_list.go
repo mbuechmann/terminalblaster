@@ -17,7 +17,7 @@ type SelectList struct {
 }
 
 // NewSelectList returns a new SelectList for the given source of items.
-func NewSelectList(source []*SelectItem, x, y, w, h int) SelectList {
+func NewSelectList(source []*SelectItem, x, y, w, h int) *SelectList {
 	sl := SelectList{
 		items: source,
 	}
@@ -30,8 +30,8 @@ func NewSelectList(source []*SelectItem, x, y, w, h int) SelectList {
 	list.Border = false
 	list.Height = h
 	list.Width = w
-	list.X = 0
-	list.Y = 0
+	list.X = x
+	list.Y = y
 
 	sl.list = list
 	sl.itemCount = len(source)
@@ -51,7 +51,7 @@ func NewSelectList(source []*SelectItem, x, y, w, h int) SelectList {
 
 	sl.fillList()
 
-	return sl
+	return &sl
 }
 
 func (sl *SelectList) fillList() {
@@ -151,8 +151,8 @@ func (sl *SelectList) OpenItem() {
 		if sl.itemCount > sl.maxItemCount {
 			sl.itemCount = sl.maxItemCount
 		}
+		sl.fillList()
 	}
-	sl.fillList()
 }
 
 // CloseItem closes the current item if it is open. If closed and if the current

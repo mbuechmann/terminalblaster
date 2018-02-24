@@ -1,42 +1,89 @@
 package ui
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gizak/termui"
+	"github.com/mbuechmann/terminalblaster/internal/audio"
+
 	lib "github.com/mbuechmann/terminalblaster/internal/library"
 	"github.com/mbuechmann/terminalblaster/internal/ui/widgets"
 )
 
-var artistList widgets.SelectList
+const (
+	artistWidth = 40
+)
+
+var artistList *widgets.SelectList
+var trackList *widgets.SelectList
+var currentList *widgets.SelectList
 
 // OpenLibraryScreen shows the library.
 func OpenLibraryScreen() {
 	termui.Clear()
+
+	height := termui.TermHeight() - 2
+	trackWidth := termui.TermWidth() - artistWidth
+
+	buildArtistList(artistWidth, height)
+	buildTrackList([]*lib.Track{}, trackWidth, height)
+	currentList = artistList
+
+	artistList.Render()
+	trackList.Render()
 
 	termui.Handle("/sys/kbd/Q", func(termui.Event) {
 		// press q to quit
 		termui.StopLoop()
 	})
 	termui.Handle("/sys/kbd/<down>", func(e termui.Event) {
-		artistList.Next()
+		currentList.Next()
 	})
 	termui.Handle("/sys/kbd/<up>", func(e termui.Event) {
-		artistList.Prev()
+		currentList.Prev()
 	})
 	termui.Handle("/sys/kbd/<next>", func(e termui.Event) {
-		artistList.NextPage()
+		currentList.NextPage()
 	})
 	termui.Handle("/sys/kbd/<previous>", func(e termui.Event) {
-		artistList.PrevPage()
+		currentList.PrevPage()
 	})
 	termui.Handle("/sys/kbd/<right>", func(e termui.Event) {
-		artistList.OpenItem()
+		currentList.OpenItem()
+		item := currentList.CurrentItem()
+		switch v := item.Value.(type) {
+		case *lib.Album:
+			buildTrackList(v.Tracks, trackWidth, height)
+			currentList = trackList
+			trackList.Render()
+		default:
+		}
 	})
 	termui.Handle("/sys/kbd/<left>", func(e termui.Event) {
-		artistList.CloseItem()
+		if currentList == artistList {
+			currentList.CloseItem()
+		} else {
+			currentList = artistList
+		}
 	})
 	termui.Handle("/sys/kbd/<enter>", func(e termui.Event) {
-		spew.Dump(artistList.CurrentItem())
+		item := currentList.CurrentItem()
+		switch v := item.Value.(type) {
+		case *lib.Album:
+			buildTrackList(v.Tracks, trackWidth, height)
+			currentList = trackList
+			trackList.Render()
+		case *lib.Track:
+			go func() {
+				err := audio.Load(v.Path)
+				if err != nil {
+					panic(err)
+				}
+				audio.Play()
+			}()
+		default:
+		}
+	})
+	termui.Handle("/sys/kbd/<space>", func(e termui.Event) {
+		audio.Toggle()
 	})
 
 	// termui.Handle("/sys/kbd", func(e termui.Event) {
@@ -44,9 +91,10 @@ func OpenLibraryScreen() {
 	// 	// <right>, <previous>, <next>, <escape>, <tab>
 	// })
 
-	width := 40
-	height := termui.TermHeight() - 2
+	termui.Loop()
+}
 
+func buildArtistList(width, height int) {
 	items := make([]*widgets.SelectItem, len(lib.Artists))
 	for i, a := range lib.Artists {
 		item := widgets.NewSelectItem(a.Name, a)
@@ -60,7 +108,12 @@ func OpenLibraryScreen() {
 	}
 
 	artistList = widgets.NewSelectList(items, 0, 0, width, height)
-	artistList.Render()
+}
 
-	termui.Loop()
+func buildTrackList(tracks []*lib.Track, width, height int) {
+	items := make([]*widgets.SelectItem, len(tracks))
+	for i, t := range tracks {
+		items[i] = &widgets.SelectItem{Name: t.Title, Value: t}
+	}
+	trackList = widgets.NewSelectList(items, artistWidth+1, 0, width, height)
 }
