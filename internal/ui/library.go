@@ -25,10 +25,8 @@ func OpenLibraryScreen() {
 
 	buildArtistList(artistWidth, height)
 	buildTrackList([]*lib.Track{}, trackWidth, height)
-	currentList = artistList
 
-	artistList.Render()
-	trackList.Render()
+	setCurrentList(artistList)
 
 	termui.Handle("/sys/kbd/Q", func(termui.Event) {
 		// press q to quit
@@ -52,7 +50,7 @@ func OpenLibraryScreen() {
 		switch v := item.Value.(type) {
 		case *lib.Album:
 			buildTrackList(v.Tracks, trackWidth, height)
-			currentList = trackList
+			setCurrentList(trackList)
 			trackList.Render()
 		default:
 		}
@@ -61,7 +59,7 @@ func OpenLibraryScreen() {
 		if currentList == artistList {
 			currentList.CloseItem()
 		} else {
-			currentList = artistList
+			setCurrentList(artistList)
 		}
 	})
 	termui.Handle("/sys/kbd/<enter>", func(e termui.Event) {
@@ -69,8 +67,7 @@ func OpenLibraryScreen() {
 		switch v := item.Value.(type) {
 		case *lib.Album:
 			buildTrackList(v.Tracks, trackWidth, height)
-			currentList = trackList
-			trackList.Render()
+			setCurrentList(trackList)
 		case *lib.Track:
 			go func() {
 				err := audio.Load(v.Path)
@@ -92,6 +89,15 @@ func OpenLibraryScreen() {
 	// })
 
 	termui.Loop()
+}
+
+func setCurrentList(list *widgets.SelectList) {
+	artistList.SetFocussed(artistList == list)
+	trackList.SetFocussed(trackList == list)
+	artistList.Render()
+	trackList.Render()
+
+	currentList = list
 }
 
 func buildArtistList(width, height int) {

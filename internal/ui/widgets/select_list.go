@@ -4,8 +4,12 @@ import (
 	"github.com/gizak/termui"
 )
 
+const ()
+
 // SelectList represents a list of items that can be selected.
 type SelectList struct {
+	focussed bool
+
 	items          []*SelectItem
 	flattenedItems []*SelectItem
 	index          int
@@ -42,7 +46,7 @@ func NewSelectList(source []*SelectItem, x, y, w, h int) *SelectList {
 	sl.maxItemCount = h
 
 	if len(sl.flattenedItems) > 0 {
-		sl.flattenedItems[0].focussed = true
+		sl.flattenedItems[0].selected = true
 	}
 
 	for _, i := range sl.items {
@@ -52,6 +56,15 @@ func NewSelectList(source []*SelectItem, x, y, w, h int) *SelectList {
 	sl.fillList()
 
 	return &sl
+}
+
+// SetFocussed sets the focussed state of the list.
+func (sl *SelectList) SetFocussed(f bool) {
+	sl.focussed = f
+	for _, i := range sl.items {
+		i.setFocussed(f)
+	}
+	sl.fillList()
 }
 
 func (sl *SelectList) fillList() {
@@ -67,7 +80,7 @@ func (sl *SelectList) fillList() {
 func (sl *SelectList) Next() {
 	if sl.offset+sl.index < len(sl.flattenedItems)-1 {
 		i := sl.CurrentItem()
-		i.focussed = false
+		i.selected = false
 
 		if sl.index < sl.itemCount-1 {
 			sl.index++
@@ -76,7 +89,7 @@ func (sl *SelectList) Next() {
 		}
 
 		i = sl.CurrentItem()
-		i.focussed = true
+		i.selected = true
 
 		sl.fillList()
 	}
@@ -86,7 +99,7 @@ func (sl *SelectList) Next() {
 func (sl *SelectList) Prev() {
 	if sl.index+sl.offset > 0 {
 		i := sl.CurrentItem()
-		i.focussed = false
+		i.selected = false
 
 		if sl.index > 0 {
 			sl.index--
@@ -95,7 +108,7 @@ func (sl *SelectList) Prev() {
 		}
 
 		i = sl.CurrentItem()
-		i.focussed = true
+		i.selected = true
 
 		sl.fillList()
 	}
@@ -104,7 +117,7 @@ func (sl *SelectList) Prev() {
 // NextPage decrements the index of the active item by one page.
 func (sl *SelectList) NextPage() {
 	i := sl.CurrentItem()
-	i.focussed = false
+	i.selected = false
 
 	sl.offset += sl.itemCount
 	if sl.offset > len(sl.flattenedItems)-sl.itemCount {
@@ -113,7 +126,7 @@ func (sl *SelectList) NextPage() {
 	}
 
 	i = sl.CurrentItem()
-	i.focussed = true
+	i.selected = true
 
 	sl.fillList()
 }
@@ -121,7 +134,7 @@ func (sl *SelectList) NextPage() {
 // PrevPage decrements the index of the active item by one page.
 func (sl *SelectList) PrevPage() {
 	i := sl.CurrentItem()
-	i.focussed = false
+	i.selected = false
 
 	sl.offset -= sl.itemCount
 	if sl.offset < 0 {
@@ -130,7 +143,7 @@ func (sl *SelectList) PrevPage() {
 	}
 
 	i = sl.CurrentItem()
-	i.focussed = true
+	i.selected = true
 
 	sl.fillList()
 }
