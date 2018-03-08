@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	"github.com/gizak/termui"
 	"github.com/mbuechmann/terminalblaster/internal/audio"
 
@@ -119,7 +121,8 @@ func buildArtistList(width, height int) {
 func buildTrackList(tracks []*lib.Track, width, height int) {
 	items := make([]*widgets.SelectItem, len(tracks))
 	for i, t := range tracks {
-		items[i] = &widgets.SelectItem{Name: t.Title, Value: t}
+		title := fmt.Sprintf("%2d. %s", t.TrackNumber, t.Title)
+		items[i] = &widgets.SelectItem{Name: title, Value: t}
 	}
 	trackList = widgets.NewSelectList(items, artistWidth+1, 0, width, height)
 }
