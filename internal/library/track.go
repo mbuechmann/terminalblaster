@@ -4,7 +4,8 @@ package library
 type Track struct {
 	Path        string
 	Title       string
-	Album       string
+	AlbumTitle  string
+	Album       *Album
 	Artist      string
 	AlbumArtist string
 	TrackNumber int

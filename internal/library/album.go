@@ -1,31 +1,24 @@
 package library
 
-import "strings"
-
 // Album represents a collection of tracks.
 type Album struct {
 	Title  string
 	Tracks []*Track
 }
 
-// AlbumList is a list of Albums.
-type AlbumList []*Album
-
-// Get returns the album with the matching name.
-func (a AlbumList) Get(title string) *Album {
-	for _, a := range a {
-		if a.Title == title {
-			return a
-		}
-	}
-	return nil
+// AddTrack adds the given track to the album.
+func (a *Album) AddTrack(t *Track) {
+	a.Tracks = append(a.Tracks, t)
+	t.Album = a
 }
 
-func (a AlbumList) Len() int      { return len(a) }
-func (a AlbumList) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a AlbumList) Less(i, j int) bool {
-	return strings.Compare(
-		strings.ToLower(a[i].Title),
-		strings.ToLower(a[j].Title),
-	) < 0
+// TrackIndex returns the index of the given track or -1 when the given track
+// cannot be found in the album list.
+func (a *Album) TrackIndex(track *Track) int {
+	for i, t := range a.Tracks {
+		if track == t {
+			return i
+		}
+	}
+	return -1
 }

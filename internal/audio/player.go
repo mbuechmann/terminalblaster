@@ -1,11 +1,14 @@
 package audio
 
 import (
+	lib "github.com/mbuechmann/terminalblaster/internal/library"
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 var currentTrack *mix.Music
+var currentIndex int
+var trackList []*lib.Track
 var playing bool
 
 func init() {
@@ -13,12 +16,14 @@ func init() {
 }
 
 // Load loads the given file.
-func Load(file string) (err error) {
+func Load(tracks []*lib.Track, index int) (err error) {
+	trackList = tracks
+	currentIndex = index
+
 	if err = mix.OpenAudio(44100, mix.DEFAULT_FORMAT, 2, 4096); err != nil {
 		return
 	}
-
-	currentTrack, err = mix.LoadMUS(file)
+	currentTrack, err = mix.LoadMUS(tracks[index].Path)
 
 	return
 }
@@ -40,6 +45,11 @@ func Play() {
 
 	mix.CloseAudio()
 	playing = false
+
+	if currentIndex < len(trackList)-1 {
+		Load(trackList, currentIndex+1)
+		go Play()
+	}
 }
 
 // Toggle pause when playing and plays when pausing.

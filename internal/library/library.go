@@ -81,14 +81,14 @@ func walk(path string, info os.FileInfo, err error) error {
 	track := &Track{
 		Path:        path,
 		Title:       m.Title(),
-		Album:       albumTitle,
+		AlbumTitle:  albumTitle,
 		Artist:      m.Artist(),
 		AlbumArtist: albumArtist,
 		TrackNumber: trackNum,
 	}
 
 	album := getAlbum(albumArtist, albumTitle)
-	album.Tracks = append(album.Tracks, track)
+	album.AddTrack(track)
 
 	trackChan <- track
 
