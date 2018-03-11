@@ -43,6 +43,7 @@ func Play() {
 
 	<-c
 
+	currentTrack.Free()
 	mix.CloseAudio()
 	playing = false
 
