@@ -20,7 +20,7 @@ func Load(tracks []*lib.Track, index int) (err error) {
 	trackList = tracks
 	currentIndex = index
 
-	if err = mix.OpenAudio(44100, mix.DEFAULT_FORMAT, 2, 4096); err != nil {
+	if err = mix.OpenAudio(44100, mix.DEFAULT_FORMAT, 2, 8192); err != nil {
 		return
 	}
 	currentTrack, err = mix.LoadMUS(tracks[index].Path)
