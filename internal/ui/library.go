@@ -17,21 +17,26 @@ const (
 var artistList *widgets.SelectList
 var trackList *widgets.SelectList
 var currentList *widgets.SelectList
+var progressBar *widgets.ProgressBar
 
 // OpenLibraryScreen shows the library.
 func OpenLibraryScreen() {
 	termui.Clear()
 
-	height := termui.TermHeight() - 2
-	trackWidth := termui.TermWidth() - artistWidth
+	height := termui.TermHeight()
+	width := termui.TermWidth()
 
-	buildArtistList(artistWidth, height)
-	buildTrackList([]*lib.Track{}, trackWidth, height)
+	listHeight := height - 1
+	trackWidth := width - artistWidth
+
+	buildArtistList(artistWidth, listHeight)
+	buildTrackList([]*lib.Track{}, trackWidth, listHeight)
+
+	progressBar = widgets.NewProgressBar("Hello", -1, listHeight, width, 1)
 
 	setCurrentList(artistList)
 
 	termui.Handle("/sys/kbd/Q", func(termui.Event) {
-		// press q to quit
 		termui.StopLoop()
 	})
 	termui.Handle("/sys/kbd/<down>", func(e termui.Event) {
@@ -51,10 +56,9 @@ func OpenLibraryScreen() {
 		item := currentList.CurrentItem()
 		switch v := item.Value.(type) {
 		case *lib.Album:
-			buildTrackList(v.Tracks, trackWidth, height)
+			buildTrackList(v.Tracks, trackWidth, listHeight)
 			setCurrentList(trackList)
 			trackList.Render()
-		default:
 		}
 	})
 	termui.Handle("/sys/kbd/<left>", func(e termui.Event) {
@@ -68,14 +72,11 @@ func OpenLibraryScreen() {
 		item := currentList.CurrentItem()
 		switch v := item.Value.(type) {
 		case *lib.Album:
-			buildTrackList(v.Tracks, trackWidth, height)
+			buildTrackList(v.Tracks, trackWidth, listHeight)
 			setCurrentList(trackList)
 		case *lib.Track:
 			go func() {
-				err := audio.SetTracks(v.Album.Tracks, v.Album.TrackIndex(v))
-				if err != nil {
-					panic(err)
-				}
+				audio.SetTracks(v.Album.Tracks, v.Album.TrackIndex(v))
 				audio.Play()
 			}()
 		default:
@@ -90,6 +91,17 @@ func OpenLibraryScreen() {
 	// 	// <right>, <previous>, <next>, <escape>, <tab>
 	// })
 
+	go func() {
+		for err := range audio.ErrorChan {
+			setError(err)
+		}
+	}()
+	go func() {
+		for t := range audio.TrackChan {
+			setCurrentTrack(t)
+		}
+	}()
+
 	termui.Loop()
 }
 
@@ -98,9 +110,17 @@ func setCurrentList(list *widgets.SelectList) {
 	trackList.SetFocussed(trackList == list)
 	artistList.Render()
 	trackList.Render()
+	progressBar.Render()
 
 	currentList = list
 }
+
+func setCurrentTrack(t *lib.Track) {
+	l := fmt.Sprintf("%s - %s: %s", t.AlbumArtist, t.AlbumTitle, t.Title)
+	progressBar.SetLabel(l)
+}
+
+func setError(err error) {}
 
 func buildArtistList(width, height int) {
 	items := make([]*widgets.SelectItem, len(lib.Artists))

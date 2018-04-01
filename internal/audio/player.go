@@ -6,6 +6,12 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+// TrackChan comminucates which track gets played.
+var TrackChan = make(chan *lib.Track)
+
+// ErrorChan communicates errors during playback.
+var ErrorChan = make(chan error)
+
 var currentTrack *mix.Music
 var currentChunk *mix.Chunk
 var currentIndex int
@@ -13,46 +19,55 @@ var trackList []*lib.Track
 var playing bool
 
 func init() {
-	sdl.Init(sdl.INIT_AUDIO)
+	if err := sdl.Init(sdl.INIT_AUDIO); err != nil {
+		ErrorChan <- err
+	}
 }
 
 // SetTracks sets the tracks to be played and the index of the first track to be
 // played.
-func SetTracks(tracks []*lib.Track, index int) (err error) {
+func SetTracks(tracks []*lib.Track, index int) {
 	trackList = tracks
 	currentIndex = index
-
-	if err = mix.OpenAudio(44100, mix.DEFAULT_FORMAT, 2, 8192); err != nil {
-		return
-	}
-	currentTrack, err = mix.LoadMUS(tracks[index].Path)
-
-	return
 }
 
-// Play plays the audio file at the given path.
+// Play plays the current track.
 func Play() {
-	if err := currentTrack.Play(1); err != nil {
-		panic(err)
-	}
+	go func() {
+		var err error
 
-	playing = true
+		if err = mix.OpenAudio(44100, mix.DEFAULT_FORMAT, 2, 8192); err != nil {
+			ErrorChan <- err
+		}
 
-	c := make(chan bool)
-	mix.HookMusicFinished(func() {
-		c <- true
-	})
+		if currentTrack, err = mix.LoadMUS(trackList[currentIndex].Path); err != nil {
+			ErrorChan <- err
+		}
 
-	<-c
+		if err := currentTrack.Play(1); err != nil {
+			ErrorChan <- err
+		} else {
+			TrackChan <- trackList[currentIndex]
+		}
 
-	currentTrack.Free()
-	mix.CloseAudio()
-	playing = false
+		playing = true
 
-	if currentIndex < len(trackList)-1 {
-		SetTracks(trackList, currentIndex+1)
-		go Play()
-	}
+		c := make(chan bool)
+		mix.HookMusicFinished(func() {
+			c <- true
+		})
+
+		<-c
+
+		currentTrack.Free()
+		mix.CloseAudio()
+		playing = false
+
+		if currentIndex < len(trackList)-1 {
+			currentIndex++
+			Play()
+		}
+	}()
 }
 
 // Toggle pause when playing and plays when pausing.
