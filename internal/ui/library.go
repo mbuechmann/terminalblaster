@@ -72,7 +72,7 @@ func OpenLibraryScreen() {
 			setCurrentList(trackList)
 		case *lib.Track:
 			go func() {
-				err := audio.Load(v.Album.Tracks, v.Album.TrackIndex(v))
+				err := audio.SetTracks(v.Album.Tracks, v.Album.TrackIndex(v))
 				if err != nil {
 					panic(err)
 				}

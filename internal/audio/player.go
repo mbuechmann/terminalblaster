@@ -7,6 +7,7 @@ import (
 )
 
 var currentTrack *mix.Music
+var currentChunk *mix.Chunk
 var currentIndex int
 var trackList []*lib.Track
 var playing bool
@@ -15,8 +16,9 @@ func init() {
 	sdl.Init(sdl.INIT_AUDIO)
 }
 
-// Load loads the given file.
-func Load(tracks []*lib.Track, index int) (err error) {
+// SetTracks sets the tracks to be played and the index of the first track to be
+// played.
+func SetTracks(tracks []*lib.Track, index int) (err error) {
 	trackList = tracks
 	currentIndex = index
 
@@ -48,7 +50,7 @@ func Play() {
 	playing = false
 
 	if currentIndex < len(trackList)-1 {
-		Load(trackList, currentIndex+1)
+		SetTracks(trackList, currentIndex+1)
 		go Play()
 	}
 }
