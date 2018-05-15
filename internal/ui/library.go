@@ -32,7 +32,7 @@ func OpenLibraryScreen() {
 	buildArtistList(artistWidth, listHeight)
 	buildTrackList([]*lib.Track{}, trackWidth, listHeight)
 
-	progressBar = widgets.NewProgressBar("Hello", -1, listHeight, width, 1)
+	progressBar = widgets.NewProgressBar("", -1, listHeight, width, 1)
 
 	setCurrentList(artistList)
 
