@@ -1,12 +1,13 @@
 package audio
 
 import (
-	lib "github.com/mbuechmann/terminalblaster/internal/library"
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
+
+	lib "github.com/mbuechmann/terminalblaster/internal/library"
 )
 
-// TrackChan comminucates which track gets played.
+// TrackChan communicates which track gets played.
 var TrackChan = make(chan *lib.Track)
 
 // ErrorChan communicates errors during playback.
