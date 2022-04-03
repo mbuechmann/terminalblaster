@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/dhowden/tag v0.0.0-20180402010641-e80a3fa76a96
 	github.com/gizak/termui v2.2.0+incompatible
-	github.com/veandco/go-sdl2 v0.3.0
 )
 
 require (
