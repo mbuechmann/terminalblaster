@@ -2,7 +2,6 @@ package audio
 
 import (
 	"os"
-	"time"
 
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/flac"
@@ -11,20 +10,22 @@ import (
 	lib "github.com/mbuechmann/terminalblaster/internal/library"
 )
 
+const quality = 10
+
 // TrackChan communicates which track gets played.
 var TrackChan = make(chan *lib.Track)
 
 // ErrorChan communicates errors during playback.
 var ErrorChan = make(chan error)
 
-//var currentTrack *mix.Music
-//var currentChunk *mix.Chunk
 var currentIndex int
 var trackList []*lib.Track
 
 var ctrl = &beep.Ctrl{}
 
-var speakerInitialized bool
+func init() {
+	speaker.Init(44100, 100)
+}
 
 // SetTracks sets the tracks to be played and the index of the first track to be
 // played.
@@ -35,6 +36,7 @@ func SetTracks(tracks []*lib.Track, index int) {
 
 // Play plays the current track.
 func Play() {
+	// open file and create streamer
 	track := trackList[currentIndex]
 	f, err := os.Open(track.Path)
 	if err != nil {
@@ -47,19 +49,11 @@ func Play() {
 	}
 	defer streamer.Close()
 
-	sr := format.SampleRate
-
-	if !speakerInitialized {
-		speaker.Init(format.SampleRate, sr.N(time.Second/10))
-		speakerInitialized = true
-	}
-
-	resampled := beep.Resample(4, format.SampleRate, sr, streamer)
-
+	// set up ctrl and play stream
 	speaker.Clear()
 	speaker.Lock()
 	ctrl.Paused = false
-	ctrl.Streamer = resampled
+	ctrl.Streamer = beep.Resample(quality, format.SampleRate, format.SampleRate, streamer)
 	speaker.Unlock()
 
 	done := make(chan bool)
@@ -68,15 +62,14 @@ func Play() {
 	})))
 	<-done
 
+	// advance to next track or loop
 	currentIndex = (currentIndex + 1) % len(trackList)
 	Play()
 }
 
-// Toggle pause when playing and plays when pausing.
+// Toggle pauses when playing and plays when paused.
 func Toggle() {
-	if ctrl != nil {
-		speaker.Lock()
-		ctrl.Paused = !ctrl.Paused
-		speaker.Unlock()
-	}
+	speaker.Lock()
+	ctrl.Paused = !ctrl.Paused
+	speaker.Unlock()
 }
