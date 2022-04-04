@@ -1,8 +1,12 @@
 package audio
 
 import (
-	//"github.com/veandco/go-sdl2/mix"
-	//"github.com/veandco/go-sdl2/sdl"
+	"os"
+	"time"
+
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/flac"
+	"github.com/faiface/beep/speaker"
 
 	lib "github.com/mbuechmann/terminalblaster/internal/library"
 )
@@ -17,68 +21,62 @@ var ErrorChan = make(chan error)
 //var currentChunk *mix.Chunk
 var currentIndex int
 var trackList []*lib.Track
-var playing bool
 
-func init() {
-	//if err := sdl.Init(sdl.INIT_AUDIO); err != nil {
-	//	ErrorChan <- err
-	//}
-}
+var ctrl = &beep.Ctrl{}
+
+var speakerInitialized bool
 
 // SetTracks sets the tracks to be played and the index of the first track to be
 // played.
 func SetTracks(tracks []*lib.Track, index int) {
-	//trackList = tracks
-	//currentIndex = index
+	trackList = tracks
+	currentIndex = index
 }
 
 // Play plays the current track.
 func Play() {
-	//go func() {
-	//	var err error
-	//
-	//	if err = mix.OpenAudio(44100, mix.DEFAULT_FORMAT, 2, 8192); err != nil {
-	//		ErrorChan <- err
-	//	}
-	//
-	//	if currentTrack, err = mix.LoadMUS(trackList[currentIndex].Path); err != nil {
-	//		ErrorChan <- err
-	//	}
-	//
-	//	if err := currentTrack.Play(1); err != nil {
-	//		ErrorChan <- err
-	//	} else {
-	//		TrackChan <- trackList[currentIndex]
-	//	}
-	//
-	//	playing = true
-	//
-	//	c := make(chan bool)
-	//	mix.HookMusicFinished(func() {
-	//		c <- true
-	//	})
-	//
-	//	<-c
-	//
-	//	currentTrack.Free()
-	//	mix.CloseAudio()
-	//	playing = false
-	//
-	//	if currentIndex < len(trackList)-1 {
-	//		currentIndex++
-	//		Play()
-	//	}
-	//}()
+	track := trackList[currentIndex]
+	f, err := os.Open(track.Path)
+	if err != nil {
+		ErrorChan <- err
+	}
+
+	streamer, format, err := flac.Decode(f)
+	if err != nil {
+		ErrorChan <- err
+	}
+	defer streamer.Close()
+
+	sr := format.SampleRate
+
+	if !speakerInitialized {
+		speaker.Init(format.SampleRate, sr.N(time.Second/10))
+		speakerInitialized = true
+	}
+
+	resampled := beep.Resample(4, format.SampleRate, sr, streamer)
+
+	speaker.Clear()
+	speaker.Lock()
+	ctrl.Paused = false
+	ctrl.Streamer = resampled
+	speaker.Unlock()
+
+	done := make(chan bool)
+	speaker.Play(beep.Seq(ctrl, beep.Callback(func() {
+		done <- true
+	})))
+	<-done
+
+	currentIndex = (currentIndex + 1) % len(trackList)
+	Play()
 }
 
 // Toggle pause when playing and plays when pausing.
 func Toggle() {
-	//if currentTrack != nil {
-	//	if playing {
-	//		mix.PauseMusic()
-	//	} else {
-	//		mix.ResumeMusic()
-	//	}
-	//	playing = !playing
-	//}
+	if ctrl != nil {
+		speaker.Lock()
+		ctrl.Paused = !ctrl.Paused
+		speaker.Unlock()
+	}
 }
