@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gizak/termui"
+
 	"github.com/mbuechmann/terminalblaster/internal/audio"
 
 	lib "github.com/mbuechmann/terminalblaster/internal/library"
