@@ -13,7 +13,7 @@ func (a *Album) AddTrack(t *Track) {
 }
 
 // TrackIndex returns the index of the given track or -1 when the given track
-// cannot be found in the album list.
+// cannot be found on the album list.
 func (a *Album) TrackIndex(track *Track) int {
 	for i, t := range a.Tracks {
 		if track == t {
