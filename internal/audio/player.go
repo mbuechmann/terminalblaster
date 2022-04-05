@@ -10,7 +10,7 @@ import (
 	lib "github.com/mbuechmann/terminalblaster/internal/library"
 )
 
-const quality = 10
+const bufferSize = 100
 
 // TrackChan communicates which track gets played.
 var TrackChan = make(chan *lib.Track)
@@ -22,10 +22,7 @@ var currentIndex int
 var trackList []*lib.Track
 
 var ctrl = &beep.Ctrl{}
-
-func init() {
-	speaker.Init(44100, 100)
-}
+var streamer beep.StreamSeekCloser
 
 // SetTracks sets the tracks to be played and the index of the first track to be
 // played.
@@ -36,6 +33,11 @@ func SetTracks(tracks []*lib.Track, index int) {
 
 // Play plays the current track.
 func Play() {
+	// clean up if another song is already playing
+	if streamer != nil {
+		_ = streamer.Close()
+	}
+
 	// open file and create streamer
 	track := trackList[currentIndex]
 	f, err := os.Open(track.Path)
@@ -43,28 +45,25 @@ func Play() {
 		ErrorChan <- err
 	}
 
-	streamer, format, err := flac.Decode(f)
+	var format beep.Format
+	streamer, format, err = flac.Decode(f)
 	if err != nil {
 		ErrorChan <- err
 	}
-	defer streamer.Close()
 
-	// set up ctrl and play stream
+	// set up new speaker and ctrl and play stream
 	speaker.Clear()
-	speaker.Lock()
 	ctrl.Paused = false
-	ctrl.Streamer = beep.Resample(quality, format.SampleRate, format.SampleRate, streamer)
-	speaker.Unlock()
+	ctrl.Streamer = streamer
 
 	done := make(chan bool)
+	speaker.Init(format.SampleRate, bufferSize)
 	speaker.Play(beep.Seq(ctrl, beep.Callback(func() {
 		done <- true
 	})))
 	<-done
 
-	// advance to next track or loop
-	currentIndex = (currentIndex + 1) % len(trackList)
-	Play()
+	streamer.Close()
 }
 
 // Toggle pauses when playing and plays when paused.
