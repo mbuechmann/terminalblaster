@@ -2,7 +2,7 @@ package ui
 
 import "github.com/gizak/termui"
 
-// Init initalizes the ui.
+// Init initializes the ui.
 func Init() error {
 	return termui.Init()
 }
