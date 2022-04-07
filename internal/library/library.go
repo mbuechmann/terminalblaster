@@ -12,10 +12,9 @@ import (
 var Artists = ArtistList{}
 
 var artistMap map[string]*Artist
-var albumMap map[string]*AlbumList
 
-var unreadableDirs = []string{}
-var unreadableFiles = []string{}
+var unreadableDirs []string
+var unreadableFiles []string
 
 var trackChan = make(chan *Track)
 
@@ -26,11 +25,14 @@ func Load(path string) (chan *Track, error) {
 		return nil, err
 	}
 
+	var err error
 	go func() {
 		artistMap = map[string]*Artist{}
-		albumMap = map[string]*AlbumList{}
 
-		filepath.Walk(path, walk)
+		err = filepath.Walk(path, walk)
+		if err != nil {
+			return
+		}
 
 		Artists = make(ArtistList, len(artistMap))
 		i := 0
@@ -42,10 +44,11 @@ func Load(path string) (chan *Track, error) {
 		sort.Sort(Artists)
 
 		close(trackChan)
-
-		artistMap = nil
-		albumMap = nil
 	}()
+
+	if err != nil {
+		return nil, err
+	}
 
 	return trackChan, nil
 }
