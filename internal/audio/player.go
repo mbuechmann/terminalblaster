@@ -35,7 +35,10 @@ func SetTracks(tracks []*lib.Track, index int) {
 func Play() {
 	// clean up if another song is already playing
 	if streamer != nil {
-		_ = streamer.Close()
+		err := streamer.Close()
+		if err != nil {
+			ErrorChan <- err
+		}
 	}
 
 	// open file and create streamer
