@@ -38,6 +38,7 @@ func Play() {
 		err := streamer.Close()
 		if err != nil {
 			ErrorChan <- err
+			return
 		}
 	}
 
@@ -46,12 +47,14 @@ func Play() {
 	f, err := os.Open(track.Path)
 	if err != nil {
 		ErrorChan <- err
+		return
 	}
 
 	var format beep.Format
 	streamer, format, err = flac.Decode(f)
 	if err != nil {
 		ErrorChan <- err
+		return
 	}
 
 	// set up new speaker and ctrl and play stream
@@ -60,13 +63,18 @@ func Play() {
 	ctrl.Streamer = streamer
 
 	done := make(chan bool)
-	speaker.Init(format.SampleRate, bufferSize)
+	if err = speaker.Init(format.SampleRate, bufferSize); err != nil {
+		ErrorChan <- err
+		return
+	}
 	speaker.Play(beep.Seq(ctrl, beep.Callback(func() {
 		done <- true
 	})))
 	<-done
 
-	streamer.Close()
+	if err = streamer.Close(); err != nil {
+		ErrorChan <- err
+	}
 }
 
 // Toggle pauses when playing and plays when paused.
