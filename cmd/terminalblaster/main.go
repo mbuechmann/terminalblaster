@@ -8,15 +8,6 @@ import (
 	"github.com/mbuechmann/terminalblaster/internal/ui"
 )
 
-// var file = "/Users/maltebuchmann/Music/Queen/Greatest Hits/01 Bohemian Rhapsody (1993 Digital Remaster).mp3"
-// var file = "/Users/maltebuchmann/Music/Led Zeppelin/Early days - The Best Of Led Zeppelin, Volume 1/13 Led Zeppelin - Stairway To Heaven.flac"
-// var file = "/Users/maltebuchmann/Music/A Fine Frenzy/Bomb in a Birdcage/04 A Fine Frenzy - Blow Away.flac"
-
-// var file = "/Users/maltebuchmann/Music/A Fine Frenzy/Bomb in a Birdcage/10 A Fine Frenzy - Stood Up.flac"
-// var file = "/Users/maltebuchmann/Music/A Fine Frenzy/One Cell in the Sea/01 A Fine Frenzy - Come On, Come Out.flac"
-
-var trackCount = 0
-
 func main() {
 	checkArgs()
 	loadLibrary()
