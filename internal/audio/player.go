@@ -12,38 +12,29 @@ import (
 
 const bufferSize = 100
 
-// TrackChan communicates which track gets played.
-var TrackChan = make(chan *lib.Track)
-
-// ErrorChan communicates errors during playback.
-var ErrorChan = make(chan error)
-
 var ctrl = &beep.Ctrl{}
 var streamer beep.StreamSeekCloser
 
 // Play plays the current track.
-func Play(track *lib.Track) {
+func Play(track *lib.Track) error {
 	// clean up if another song is already playing
 	if streamer != nil {
 		err := streamer.Close()
 		if err != nil {
-			ErrorChan <- err
-			return
+			return err
 		}
 	}
 
 	// open file and create streamer
 	f, err := os.Open(track.Path)
 	if err != nil {
-		ErrorChan <- err
-		return
+		return err
 	}
 
 	var format beep.Format
 	streamer, format, err = flac.Decode(f)
 	if err != nil {
-		ErrorChan <- err
-		return
+		return err
 	}
 
 	// set up new speaker and ctrl and play stream
@@ -53,17 +44,14 @@ func Play(track *lib.Track) {
 
 	done := make(chan bool)
 	if err = speaker.Init(format.SampleRate, bufferSize); err != nil {
-		ErrorChan <- err
-		return
+		return err
 	}
 	speaker.Play(beep.Seq(ctrl, beep.Callback(func() {
 		done <- true
 	})))
 	<-done
 
-	if err = streamer.Close(); err != nil {
-		ErrorChan <- err
-	}
+	return streamer.Close()
 }
 
 // Toggle pauses when playing and plays when paused.

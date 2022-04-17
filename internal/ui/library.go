@@ -77,7 +77,10 @@ func OpenLibraryScreen() {
 			setCurrentList(trackList)
 		case *lib.Track:
 			go func() {
-				audio.Play(v)
+				setCurrentTrack(v)
+				if err := audio.Play(v); err != nil {
+					setError(err)
+				}
 			}()
 		default:
 		}
@@ -90,17 +93,6 @@ func OpenLibraryScreen() {
 	// 	fmt.Printf("%+v\n", e)
 	// 	// <right>, <previous>, <next>, <escape>, <tab>
 	// })
-
-	go func() {
-		for err := range audio.ErrorChan {
-			setError(err)
-		}
-	}()
-	go func() {
-		for t := range audio.TrackChan {
-			setCurrentTrack(t)
-		}
-	}()
 
 	termui.Loop()
 }
