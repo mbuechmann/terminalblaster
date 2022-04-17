@@ -77,8 +77,7 @@ func OpenLibraryScreen() {
 			setCurrentList(trackList)
 		case *lib.Track:
 			go func() {
-				audio.SetTracks(v.Album.Tracks, v.Album.TrackIndex(v))
-				audio.Play()
+				audio.Play(v)
 			}()
 		default:
 		}

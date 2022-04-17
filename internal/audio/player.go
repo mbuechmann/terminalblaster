@@ -18,21 +18,11 @@ var TrackChan = make(chan *lib.Track)
 // ErrorChan communicates errors during playback.
 var ErrorChan = make(chan error)
 
-var currentIndex int
-var trackList []*lib.Track
-
 var ctrl = &beep.Ctrl{}
 var streamer beep.StreamSeekCloser
 
-// SetTracks sets the tracks to be played and the index of the first track to be
-// played.
-func SetTracks(tracks []*lib.Track, index int) {
-	trackList = tracks
-	currentIndex = index
-}
-
 // Play plays the current track.
-func Play() {
+func Play(track *lib.Track) {
 	// clean up if another song is already playing
 	if streamer != nil {
 		err := streamer.Close()
@@ -43,7 +33,6 @@ func Play() {
 	}
 
 	// open file and create streamer
-	track := trackList[currentIndex]
 	f, err := os.Open(track.Path)
 	if err != nil {
 		ErrorChan <- err
