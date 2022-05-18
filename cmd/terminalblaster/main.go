@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	lib "github.com/mbuechmann/terminalblaster/internal/library"
-	"github.com/mbuechmann/terminalblaster/internal/ui"
+	ui "github.com/mbuechmann/terminalblaster/internal/ui2"
 )
 
 var cmd = &cobra.Command{
