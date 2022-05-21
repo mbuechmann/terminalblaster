@@ -52,7 +52,7 @@ var cmd = &cobra.Command{
 			panic(err)
 		}
 
-		ui.OpenLibraryScreen()
+		ui.OpenLibraryScreen(lib.Artists)
 
 		ui.Close()
 	},
