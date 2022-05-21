@@ -11,11 +11,11 @@ import (
 )
 
 func OpenLibraryScreen(artists library.ArtistList) error {
-	renderArtistList(artists)
+	renderScreen(artists)
 	for {
 		switch ev := screen.PollEvent().(type) {
 		case *tcell.EventResize:
-			renderArtistList(artists)
+			renderScreen(artists)
 			screen.Sync()
 		case *tcell.EventKey:
 			if ev.Key() == tcell.KeyRune && ev.Rune() == 'Q' {
@@ -27,7 +27,7 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 	return nil
 }
 
-func renderArtistList(artists library.ArtistList) {
+func renderScreen(artists library.ArtistList) {
 	screen.Clear()
 
 	w, h := screen.Size()
