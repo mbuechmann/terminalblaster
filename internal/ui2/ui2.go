@@ -6,9 +6,19 @@ import (
 )
 
 var screen tcell.Screen
-var style = tcell.StyleDefault.
-	Background(tcell.NewRGBColor(0, 0, 0)).
-	Foreground(tcell.NewRGBColor(255, 255, 255))
+
+var (
+	colorDarkBlue  = tcell.NewRGBColor(20, 33, 61)
+	colorLightGrey = tcell.NewRGBColor(229, 229, 229)
+	colorOrange    = tcell.NewRGBColor(252, 163, 17)
+	
+	styleRegular = tcell.StyleDefault.
+		Background(colorDarkBlue).
+		Foreground(colorLightGrey)
+	styleHeadline = tcell.StyleDefault.
+		Background(colorOrange).
+		Foreground(colorLightGrey)
+)
 
 func Init() error {
 	encoding.Register()
@@ -21,6 +31,8 @@ func Init() error {
 	if err := screen.Init(); err != nil {
 		return err
 	}
+
+	screen.SetStyle(styleRegular)
 	screen.Clear()
 
 	return nil

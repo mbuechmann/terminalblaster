@@ -2,6 +2,8 @@ package ui2
 
 import (
 	"os"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/gdamore/tcell"
 
@@ -9,7 +11,7 @@ import (
 )
 
 func OpenLibraryScreen(artists library.ArtistList) error {
-	renderLibrary(artists)
+	renderArtistList(artists)
 	for {
 		switch ev := screen.PollEvent().(type) {
 		case *tcell.EventResize:
@@ -24,14 +26,20 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 	return nil
 }
 
-func renderLibrary(artists library.ArtistList) {
+func renderArtistList(artists library.ArtistList) {
 	screen.Clear()
 
-	_, h := screen.Size()
+	w, h := screen.Size()
 
+	// render top bar
+	top := " Artist / Title"
+	top += strings.Repeat(" ", w-utf8.RuneCount([]byte(top)))
+	renderString(top, styleHeadline, 0, 0)
+
+	// render list of artists
 	var i int
-	for y := 0; y < h; y++ {
-		renderString(artists[i].Name, style, 0, y)
+	for y := 1; y < h; y++ {
+		renderString(artists[i].Name, styleRegular, 0, y)
 		i++
 	}
 }

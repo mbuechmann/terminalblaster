@@ -21,9 +21,9 @@ func OpenLoadScreen(ch chan *library.Track) error {
 		x := (w - utf8.RuneCount([]byte(str))) / 2
 
 		border := strings.Repeat("─", utf8.RuneCount([]byte(str))-2)
-		renderString("┌"+border+"┐", style, x, y-1)
-		renderString(str, style, x, y)
-		renderString("└"+border+"┘", style, x, y+1)
+		renderString("┌"+border+"┐", styleRegular, x, y-1)
+		renderString(str, styleRegular, x, y)
+		renderString("└"+border+"┘", styleRegular, x, y+1)
 		screen.Show()
 	}
 
