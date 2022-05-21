@@ -40,7 +40,7 @@ func renderArtistList(artists library.ArtistList) {
 	var i int
 	for y := 1; y < h-2; y++ {
 		// TODO: Limit length of string
-		renderString(artists[i].Name, styleRegular, 0, y)
+		renderString(" "+artists[i].Name, styleRegular, 0, y)
 		i++
 	}
 
@@ -50,4 +50,13 @@ func renderArtistList(artists library.ArtistList) {
 	// TODO: check for negative repeat count
 	bottom := current + strings.Repeat(" ", w-utf8.RuneCount([]byte(current))-utf8.RuneCount([]byte(play))) + play
 	renderString(bottom, styleHeadline, 0, h-2)
+
+	// render divider
+	// TODO: Make panel width dynamic
+	panelWidth := 50
+	for y := 1; y < h-2; y++ {
+		renderString("│", styleRegular, panelWidth, y)
+	}
+
+	screen.Sync()
 }
