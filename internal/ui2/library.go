@@ -10,6 +10,8 @@ import (
 	"github.com/mbuechmann/terminalblaster/internal/library"
 )
 
+var positionArtists int
+
 func OpenLibraryScreen(artists library.ArtistList) error {
 	renderScreen(artists)
 	for {
@@ -18,9 +20,20 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 			renderScreen(artists)
 			screen.Sync()
 		case *tcell.EventKey:
-			if ev.Key() == tcell.KeyRune && ev.Rune() == 'Q' {
-				screen.Fini()
-				os.Exit(0)
+			switch ev.Key() {
+			case tcell.KeyRune:
+				if ev.Rune() == 'Q' {
+					screen.Fini()
+					os.Exit(0)
+				}
+			case tcell.KeyDown:
+				positionArtists++
+				// TODO: minimize rendering
+				renderScreen(artists)
+			case tcell.KeyUp:
+				positionArtists--
+				// TODO: minimize rendering
+				renderScreen(artists)
 			}
 		}
 	}
@@ -46,7 +59,14 @@ func renderScreen(artists library.ArtistList) {
 	var i int
 	for y := 1; y < h-2; y++ {
 		// TODO: Limit length of string
-		renderString(" "+artists[i].Name, styleRegular, 0, y)
+		style := styleRegular
+		if i == positionArtists {
+			style = styleCursor
+		}
+
+		line := " " + artists[i].Name
+		line += strings.Repeat(" ", panelWidth-utf8.RuneCount([]byte(line)))
+		renderString(line, style, 0, y)
 		i++
 	}
 

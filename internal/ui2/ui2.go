@@ -13,11 +13,14 @@ var (
 	colorOrange    = tcell.NewRGBColor(252, 163, 17)
 
 	styleRegular = tcell.StyleDefault.
-		Background(colorDarkBlue).
-		Foreground(colorLightGrey)
+			Background(colorDarkBlue).
+			Foreground(colorLightGrey)
+	styleCursor = tcell.StyleDefault.
+			Background(colorLightGrey).
+			Foreground(colorDarkBlue)
 	styleHeadline = tcell.StyleDefault.
-		Background(colorOrange).
-		Foreground(colorLightGrey)
+			Background(colorOrange).
+			Foreground(colorLightGrey)
 )
 
 func Init() error {
