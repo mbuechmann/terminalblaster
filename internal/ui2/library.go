@@ -15,6 +15,7 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 	for {
 		switch ev := screen.PollEvent().(type) {
 		case *tcell.EventResize:
+			renderArtistList(artists)
 			screen.Sync()
 		case *tcell.EventKey:
 			if ev.Key() == tcell.KeyRune && ev.Rune() == 'Q' {
