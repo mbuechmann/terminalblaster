@@ -30,9 +30,14 @@ func renderArtistList(artists library.ArtistList) {
 	screen.Clear()
 
 	w, h := screen.Size()
+	// TODO: Make panel width dynamic
+	panelWidth := 50
 
 	// render top bar
+	// TODO: check for negative repeat counts
 	top := " Artist / Title"
+	top += strings.Repeat(" ", 52-utf8.RuneCount([]byte(top)))
+	top += "Track"
 	top += strings.Repeat(" ", w-utf8.RuneCount([]byte(top)))
 	renderString(top, styleHeadline, 0, 0)
 
@@ -52,8 +57,6 @@ func renderArtistList(artists library.ArtistList) {
 	renderString(bottom, styleHeadline, 0, h-2)
 
 	// render divider
-	// TODO: Make panel width dynamic
-	panelWidth := 50
 	for y := 1; y < h-2; y++ {
 		renderString("│", styleRegular, panelWidth, y)
 	}
