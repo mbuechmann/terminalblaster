@@ -38,8 +38,16 @@ func renderArtistList(artists library.ArtistList) {
 
 	// render list of artists
 	var i int
-	for y := 1; y < h; y++ {
+	for y := 1; y < h-2; y++ {
+		// TODO: Limit length of string
 		renderString(artists[i].Name, styleRegular, 0, y)
 		i++
 	}
+
+	// render current title and play data
+	current := " Artist - Album - X. Title"
+	play := "00:00 / 00:00 "
+	// TODO: check for negative repeat count
+	bottom := current + strings.Repeat(" ", w-utf8.RuneCount([]byte(current))-utf8.RuneCount([]byte(play))) + play
+	renderString(bottom, styleHeadline, 0, h-2)
 }

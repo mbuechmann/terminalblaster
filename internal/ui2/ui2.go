@@ -11,7 +11,7 @@ var (
 	colorDarkBlue  = tcell.NewRGBColor(20, 33, 61)
 	colorLightGrey = tcell.NewRGBColor(229, 229, 229)
 	colorOrange    = tcell.NewRGBColor(252, 163, 17)
-	
+
 	styleRegular = tcell.StyleDefault.
 		Background(colorDarkBlue).
 		Foreground(colorLightGrey)
