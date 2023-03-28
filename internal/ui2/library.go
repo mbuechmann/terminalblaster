@@ -16,7 +16,7 @@ type menuItem struct {
 	open   bool
 }
 
-var position int
+var menuPosition int
 var menuItems []*menuItem
 
 func OpenLibraryScreen(artists library.ArtistList) error {
@@ -39,11 +39,11 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 					os.Exit(0)
 				}
 			case tcell.KeyDown:
-				position++
+				menuPosition++
 				// TODO: minimize rendering
 				renderScreen()
 			case tcell.KeyUp:
-				position--
+				menuPosition--
 				// TODO: minimize rendering
 				renderScreen()
 			case tcell.KeyEnter:
@@ -56,12 +56,12 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 }
 
 func toggleItem() {
-	item := menuItems[position]
+	item := menuItems[menuPosition]
 
 	if item.artist != nil {
 		if item.open {
 			cut := len(item.artist.Albums)
-			menuItems = append(menuItems[:position+1], menuItems[position+cut+1:]...)
+			menuItems = append(menuItems[:menuPosition+1], menuItems[menuPosition+cut+1:]...)
 		} else {
 			insert := make([]*menuItem, len(item.artist.Albums))
 			for i, album := range item.artist.Albums {
@@ -69,7 +69,7 @@ func toggleItem() {
 					album: album,
 				}
 			}
-			menuItems = append(menuItems[:position+1], append(insert, menuItems[position+1:]...)...)
+			menuItems = append(menuItems[:menuPosition+1], append(insert, menuItems[menuPosition+1:]...)...)
 		}
 
 		item.open = !item.open
@@ -96,7 +96,7 @@ func renderScreen() {
 	for y := 1; y < h-2; y++ {
 		// TODO: Limit length of string
 		style := styleRegular
-		if i == position {
+		if i == menuPosition {
 			style = styleCursor
 		}
 
