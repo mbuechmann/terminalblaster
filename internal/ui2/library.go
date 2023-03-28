@@ -94,7 +94,6 @@ func renderScreen() {
 	// render list of artists
 	var i int
 	for y := 1; y < h-2; y++ {
-		// TODO: Limit length of string
 		style := styleRegular
 		if i == menuPosition {
 			style = styleCursor
@@ -113,7 +112,11 @@ func renderScreen() {
 			line = ""
 		}
 
-		line += strings.Repeat(" ", panelWidth-utf8.RuneCount([]byte(line)))
+		// if too long cap after panelWidth
+		if utf8.RuneCount([]byte(line)) > panelWidth {
+			line = string([]rune(line)[0:panelWidth])
+		}
+
 		renderString(line, style, 0, y)
 		i++
 	}
