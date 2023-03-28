@@ -10,14 +10,26 @@ import (
 	"github.com/mbuechmann/terminalblaster/internal/library"
 )
 
-var positionArtists int
+type menuItem struct {
+	artist *library.Artist
+	album  *library.Album
+	open   bool
+}
+
+var position int
+var menuItems []*menuItem
 
 func OpenLibraryScreen(artists library.ArtistList) error {
-	renderScreen(artists)
+	menuItems = make([]*menuItem, len(artists))
+	for i, artist := range artists {
+		menuItems[i] = &menuItem{artist: artist}
+	}
+
+	renderScreen()
 	for {
 		switch ev := screen.PollEvent().(type) {
 		case *tcell.EventResize:
-			renderScreen(artists)
+			renderScreen()
 			screen.Sync()
 		case *tcell.EventKey:
 			switch ev.Key() {
@@ -27,20 +39,44 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 					os.Exit(0)
 				}
 			case tcell.KeyDown:
-				positionArtists++
+				position++
 				// TODO: minimize rendering
-				renderScreen(artists)
+				renderScreen()
 			case tcell.KeyUp:
-				positionArtists--
+				position--
 				// TODO: minimize rendering
-				renderScreen(artists)
+				renderScreen()
+			case tcell.KeyEnter:
+				toggleItem()
+				renderScreen()
 			}
 		}
 	}
 	return nil
 }
 
-func renderScreen(artists library.ArtistList) {
+func toggleItem() {
+	item := menuItems[position]
+
+	if item.artist != nil {
+		if item.open {
+			cut := len(item.artist.Albums)
+			menuItems = append(menuItems[:position+1], menuItems[position+cut+1:]...)
+		} else {
+			insert := make([]*menuItem, len(item.artist.Albums))
+			for i, album := range item.artist.Albums {
+				insert[i] = &menuItem{
+					album: album,
+				}
+			}
+			menuItems = append(menuItems[:position+1], append(insert, menuItems[position+1:]...)...)
+		}
+
+		item.open = !item.open
+	}
+}
+
+func renderScreen() {
 	screen.Clear()
 
 	w, h := screen.Size()
@@ -60,11 +96,23 @@ func renderScreen(artists library.ArtistList) {
 	for y := 1; y < h-2; y++ {
 		// TODO: Limit length of string
 		style := styleRegular
-		if i == positionArtists {
+		if i == position {
 			style = styleCursor
 		}
 
-		line := " " + artists[i].Name
+		item := menuItems[i]
+
+		var line string
+
+		switch {
+		case item.artist != nil:
+			line = " " + item.artist.Name
+		case item.album != nil:
+			line = "   " + item.album.Title
+		default:
+			line = ""
+		}
+
 		line += strings.Repeat(" ", panelWidth-utf8.RuneCount([]byte(line)))
 		renderString(line, style, 0, y)
 		i++
