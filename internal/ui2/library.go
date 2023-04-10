@@ -51,29 +51,50 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 					os.Exit(0)
 				}
 			case tcell.KeyDown:
-				if focus == focusMenu {
-					menuPosition++
-				} else {
-					albumPosition++
-				}
+				keyDown()
 				// TODO: minimize rendering
 				renderScreen()
 			case tcell.KeyUp:
-				if focus == focusMenu {
-					menuPosition--
-				} else {
-					albumPosition--
-				}
+				keyUp()
 				renderScreen()
 			case tcell.KeyEnter:
-				if focus == focusMenu {
-					toggleItem()
-				}
+				keyEnter()
 				renderScreen()
 			}
 		}
 	}
 	return nil
+}
+
+func keyEnter() {
+	if focus == focusMenu {
+		toggleItem()
+	}
+}
+
+func keyUp() {
+	if focus == focusMenu {
+		if menuPosition > 0 {
+			menuPosition--
+		}
+	} else {
+		if albumPosition > 0 {
+			albumPosition--
+		}
+	}
+}
+
+func keyDown() {
+	if focus == focusMenu {
+		_, h := screen.Size()
+		if menuPosition < h-4 {
+			menuPosition++
+		}
+	} else {
+		if albumPosition < len(selectedAlbum.Tracks)-1 {
+			albumPosition++
+		}
+	}
 }
 
 func toggleItem() {
@@ -106,21 +127,17 @@ func toggleItem() {
 func renderScreen() {
 	screen.Clear()
 
-	w, h := screen.Size()
-	// TODO: Make panel width dynamic
-	panelWidth := 50
-
 	// render top bar
 	// TODO: check for negative repeat counts
 	top := " Artist / Title"
 	top += strings.Repeat(" ", 52-utf8.RuneCount([]byte(top)))
 	top += "Track"
-	top += strings.Repeat(" ", w-utf8.RuneCount([]byte(top)))
+	top += strings.Repeat(" ", screenWidth()-utf8.RuneCount([]byte(top)))
 	renderString(top, styleHeadline, 0, 0)
 
 	// render list of artists
 	var i int
-	for y := 1; y < h-2; y++ {
+	for y := 1; y < menuHeight(); y++ {
 		style := styleRegular
 		if i == menuPosition {
 			if focus == focusMenu {
@@ -143,13 +160,13 @@ func renderScreen() {
 			line = ""
 		}
 
-		// if too long cap after panelWidth
-		if utf8.RuneCount([]byte(line)) > panelWidth {
-			line = string([]rune(line)[0:panelWidth])
+		// if too long cap after menuWidth
+		if utf8.RuneCount([]byte(line)) > menuWidth() {
+			line = string([]rune(line)[0:menuWidth()])
 		}
 
 		// fill with spaces for better highlighting
-		line += strings.Repeat(" ", panelWidth-utf8.RuneCount([]byte(line)))
+		line += strings.Repeat(" ", menuWidth()-utf8.RuneCount([]byte(line)))
 
 		renderString(line, style, 0, y)
 
@@ -167,7 +184,7 @@ func renderScreen() {
 					style = styleInActiveCursor
 				}
 			}
-			renderString(track.Title, style, panelWidth+1, i+1)
+			renderString(track.Title, style, menuWidth()+1, i+1)
 		}
 	}
 
@@ -175,13 +192,28 @@ func renderScreen() {
 	current := " Artist - Album - X. Title"
 	play := "00:00 / 00:00 "
 	// TODO: check for negative repeat count
-	bottom := current + strings.Repeat(" ", w-utf8.RuneCount([]byte(current))-utf8.RuneCount([]byte(play))) + play
-	renderString(bottom, styleHeadline, 0, h-2)
+	bottom := current + strings.Repeat(" ", screenWidth()-utf8.RuneCount([]byte(current))-utf8.RuneCount([]byte(play))) + play
+	renderString(bottom, styleHeadline, 0, menuHeight())
 
 	// render divider
-	for y := 1; y < h-2; y++ {
-		renderString("│", styleRegular, panelWidth, y)
+	for y := 1; y < menuHeight(); y++ {
+		renderString("│", styleRegular, menuWidth(), y)
 	}
 
 	screen.Sync()
+}
+
+func menuHeight() int {
+	_, h := screen.Size()
+	return h - 2
+}
+
+func menuWidth() int {
+	// TODO: Make dynamic
+	return 50
+}
+
+func screenWidth() int {
+	w, _ := screen.Size()
+	return w
 }
