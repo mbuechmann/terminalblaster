@@ -15,9 +15,12 @@ var (
 	styleRegular = tcell.StyleDefault.
 			Background(colorDarkBlue).
 			Foreground(colorLightGrey)
-	styleCursor = tcell.StyleDefault.
-			Background(colorLightGrey).
-			Foreground(colorDarkBlue)
+	styleActiveCursor = tcell.StyleDefault.
+				Background(colorLightGrey).
+				Foreground(colorOrange)
+	styleInActiveCursor = tcell.StyleDefault.
+				Background(colorLightGrey).
+				Foreground(colorDarkBlue)
 	styleHeadline = tcell.StyleDefault.
 			Background(colorOrange).
 			Foreground(colorLightGrey)

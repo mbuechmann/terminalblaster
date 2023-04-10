@@ -10,14 +10,26 @@ import (
 	"github.com/mbuechmann/terminalblaster/internal/library"
 )
 
+const (
+	focusMenu = iota
+	focusAlbum
+)
+
 type menuItem struct {
 	artist *library.Artist
 	album  *library.Album
 	open   bool
 }
 
-var menuPosition int
-var menuItems []*menuItem
+var (
+	focus int = focusMenu
+
+	menuPosition int
+	menuItems    []*menuItem
+
+	selectedAlbum *library.Album
+	albumPosition int
+)
 
 func OpenLibraryScreen(artists library.ArtistList) error {
 	menuItems = make([]*menuItem, len(artists))
@@ -39,15 +51,24 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 					os.Exit(0)
 				}
 			case tcell.KeyDown:
-				menuPosition++
+				if focus == focusMenu {
+					menuPosition++
+				} else {
+					albumPosition++
+				}
 				// TODO: minimize rendering
 				renderScreen()
 			case tcell.KeyUp:
-				menuPosition--
-				// TODO: minimize rendering
+				if focus == focusMenu {
+					menuPosition--
+				} else {
+					albumPosition--
+				}
 				renderScreen()
 			case tcell.KeyEnter:
-				toggleItem()
+				if focus == focusMenu {
+					toggleItem()
+				}
 				renderScreen()
 			}
 		}
@@ -74,6 +95,12 @@ func toggleItem() {
 
 		item.open = !item.open
 	}
+
+	if item.album != nil {
+		selectedAlbum = item.album
+		albumPosition = 0
+		focus = focusAlbum
+	}
 }
 
 func renderScreen() {
@@ -96,7 +123,11 @@ func renderScreen() {
 	for y := 1; y < h-2; y++ {
 		style := styleRegular
 		if i == menuPosition {
-			style = styleCursor
+			if focus == focusMenu {
+				style = styleActiveCursor
+			} else {
+				style = styleInActiveCursor
+			}
 		}
 
 		item := menuItems[i]
@@ -123,6 +154,21 @@ func renderScreen() {
 		renderString(line, style, 0, y)
 
 		i++
+	}
+
+	// render album's songs
+	if selectedAlbum != nil {
+		for i, track := range selectedAlbum.Tracks {
+			style := styleRegular
+			if i == albumPosition {
+				if focus == focusAlbum {
+					style = styleActiveCursor
+				} else {
+					style = styleInActiveCursor
+				}
+			}
+			renderString(track.Title, style, panelWidth+1, i+1)
+		}
 	}
 
 	// render current title and play data
