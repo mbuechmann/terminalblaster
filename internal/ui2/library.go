@@ -117,7 +117,11 @@ func renderScreen() {
 			line = string([]rune(line)[0:panelWidth])
 		}
 
+		// fill with spaces for better highlighting
+		line += strings.Repeat(" ", panelWidth-utf8.RuneCount([]byte(line)))
+
 		renderString(line, style, 0, y)
+
 		i++
 	}
 
