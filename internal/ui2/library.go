@@ -7,6 +7,7 @@ import (
 
 	"github.com/gdamore/tcell"
 
+	"github.com/mbuechmann/terminalblaster/internal/audio"
 	"github.com/mbuechmann/terminalblaster/internal/library"
 )
 
@@ -29,6 +30,8 @@ var (
 
 	selectedAlbum *library.Album
 	albumPosition int
+
+	selectedTrack *library.Track
 )
 
 func OpenLibraryScreen(artists library.ArtistList) error {
@@ -69,6 +72,10 @@ func OpenLibraryScreen(artists library.ArtistList) error {
 func keyEnter() {
 	if focus == focusMenu {
 		toggleItem()
+	} else {
+		go func() {
+			_ = audio.Play(selectedTrack)
+		}()
 	}
 }
 
@@ -81,6 +88,7 @@ func keyUp() {
 		if albumPosition > 0 {
 			albumPosition--
 		}
+		selectedTrack = selectedAlbum.Tracks[albumPosition]
 	}
 }
 
@@ -94,6 +102,7 @@ func keyDown() {
 		if albumPosition < len(selectedAlbum.Tracks)-1 {
 			albumPosition++
 		}
+		selectedTrack = selectedAlbum.Tracks[albumPosition]
 	}
 }
 
@@ -121,6 +130,7 @@ func toggleItem() {
 		selectedAlbum = item.album
 		albumPosition = 0
 		focus = focusAlbum
+		selectedTrack = selectedAlbum.Tracks[0]
 	}
 }
 
